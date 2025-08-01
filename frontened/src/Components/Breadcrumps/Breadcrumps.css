@@ -1,0 +1,42 @@
+.breadcrumps{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5e5e5e;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 60px 170px;
+  text-transform: capitalize;
+}
+
+
+@media(max-width:1280px){
+  .breadcrumps{
+    margin: 30px 50px;
+    font-size: 14px;
+  }
+}
+
+
+@media(max-width:1024px){
+  .breadcrumps{
+    margin: 30px 30px;
+    font-size: 13px;
+  }
+}
+
+
+@media(max-width:800px){
+  .breadcrumps{
+    margin: 30px 10px;
+    font-size: 12px;
+  }
+}
+
+
+@media(max-width:500px){
+  .breadcrumps{
+  
+    font-size: 10px;
+  }
+}

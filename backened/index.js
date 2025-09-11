@@ -5,7 +5,7 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { type } = require('os');
+const jwt = require('jsonwebtoken');   // ✅ FIX: Import jwt
 
 const app = express();
 const port = 4001;
@@ -25,7 +25,7 @@ mongoose.connect('mongodb+srv://ohmgaud36:ohmgaud16@cluster0.yswkhgd.mongodb.net
 .then(() => console.log("✅ MongoDB Connected"))
 .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
-// Define schema and model
+// Define schema and model for products
 const productSchema = new mongoose.Schema({
   id: Number,
   name: String,
@@ -35,7 +35,8 @@ const productSchema = new mongoose.Schema({
   old_price: Number,
   date: { type: Date, default: Date.now },
   available: { type: Boolean, default: true }
-}, { strict: false }); 
+}, { strict: false });
+
 const Product = mongoose.model('Product', productSchema);
 
 // Serve static images
@@ -77,25 +78,23 @@ app.post('/addproduct', async (req, res) => {
     const id = lastProduct ? lastProduct.id + 1 : 1;
 
     const newProduct = new Product({
-      id: id || 1,
-      name: name || '',
-      image: image || '',
-      category: category || '',
-      new_price: Number(new_price || 0),
-      old_price: Number(old_price || 0),
-        });
+      id,
+      name,
+      image,
+      category,
+      new_price: Number(new_price),
+      old_price: Number(old_price),
+    });
 
     await newProduct.save();
     console.log("✅ Product added:", newProduct);
     res.status(201).json({ success: true, message: 'Product added' });
 
   } catch (err) {
-    console.error("🔥 ERROR DETAILS:", err); // <== Add this line
+    console.error("🔥 ERROR DETAILS:", err);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
-
-
 
 // Get all products
 app.get('/allproducts', async (req, res) => {
@@ -109,83 +108,77 @@ app.post('/removeproduct', async (req, res) => {
   res.json({ success: true });
 });
 
+// ================= USERS =================
 
-//schema creation for user model
-const Users = mongoose.model('Users',{
-    name:{
-      type:String,
+// Schema creation for user model
+const Users = mongoose.model('Users', {
+  name: { type: String },
+  email: { type: String, unique: true },
+  password: { type: String },
+  cartData: { type: Object },
+  date: { type: Date, default: Date.now }
+});
+
+// Signup route
+app.post('/signup', async (req, res) => {
+  try {
+    let check = await Users.findOne({ email: req.body.email });  // ✅ FIX: typo
+    if (check) {
+      return res.status(400).json({ success: false, errors: "User already exists with this email" });
     }
-      ,
-      email:{
-        type:String,
-        unique:true,
-      },
-      password:{
-        type:String,
-      },
-      cartData:{
-        type:Object,
-      },
-      date:{
-        type:Date,
-        default:Date.now,
-      }    
-})
-// create end point for regestring the user
-app.post('/signup',async(req,res)=>{
-  let check = await Users.findOne({email:req.body.enail});
-  if (check){
-    return res.status(400).json({success:false,errors:"existing user found with same email id and email address"})
+
+    let cart = {};
+    for (let i = 0; i < 300; i++) {
+      cart[i] = 0;
+    }
+
+    const user = new Users({
+      name: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      cartData: cart,
+    });
+
+    await user.save();
+
+    const data = { user: { id: user.id } };
+    const token = jwt.sign(data, 'secret_ecom');
+
+    res.json({ success: true, token });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
-  let cart = {};
-  for (let i = 0; i < 300; i++) {
-    cart[i]=0;
+});
+
+// Login route
+app.post('/login', async (req, res) => {
+  try {
+    let user = await Users.findOne({ email: req.body.email });
+    if (!user) {
+      return res.json({ success: false, error: "Wrong email id" });
+    }
+
+    const passCompare = req.body.password === user.password; // ✅ FIXED
+    if (!passCompare) {
+      return res.json({ success: false, error: "Wrong Password" });
+    }
+
+    const data = { user: { id: user.id } };
+    const token = jwt.sign(data, 'secret_ecom');
+
+    res.json({ success: true, token });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
-  const user = new Users({
-    name:req.body.username,
-    email:req.body.email,
-    password:req.body.password,
-    cartData:cart,
-  })
-
-  await user.save();
-  const data={
-    user:{
-      id:user.id
-    }
-  }
-  const token = jwt.sign(data,'secret_ecom');
-  res.json({success:true,token})
-  
-})
-
-// create endpoint for userlogin
-app.post('/login',async(req,res)=>{
-    let user = await Users.findOne({email:req.body.email});
-    if (user){
-      const passCompare = req.body.password === useReducer.password;
-      if (passCompare){
-        const data = {
-          user:{
-            id:user.id
-          }
-        }
-        const token = jwt.sign(data,'secret_ecom');
-        res.json({success:true,token})
-      }
-      else{
-        res.json({success:false,error:'Wrong Password'});
-      }
-    }
-    else{
-      res.json({success:false,error:"wrong email id"})
-    }
-})
+});
 
 
 
 
 
+// ================= SERVER =================
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
 });

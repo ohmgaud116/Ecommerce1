@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import './Addproduct.css';
 import upload_area from '../../assets/upload_area.svg';
 
+// ✅ Backend URL defined here
+const BASE_URL = "https://ecommerce1-8j8k.onrender.com";
+
 const Addproduct = () => {
   const [image, setImage] = useState(null);
   const [productDetails, setProductDetails] = useState({
@@ -12,7 +15,7 @@ const Addproduct = () => {
     old_price: ''
   });
 
-  // Handle input changes for all fields
+  // Handle input changes
   const changeHandler = (e) => {
     setProductDetails({
       ...productDetails,
@@ -37,7 +40,7 @@ const Addproduct = () => {
 
     try {
       // Upload image
-      const uploadRes = await fetch('http://localhost:4001/upload', {
+      const uploadRes = await fetch(`${BASE_URL}/upload`, {
         method: 'POST',
         body: formData
       });
@@ -59,7 +62,7 @@ const Addproduct = () => {
       console.log("Sending product to backend:", productToSend);
 
       // Add product
-      const res = await fetch('http://localhost:4001/addproduct', {
+      const res = await fetch(`${BASE_URL}/addproduct`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +75,6 @@ const Addproduct = () => {
 
       if (data.success) {
         alert("✅ Product added successfully!");
-        // Reset fields
         setProductDetails({
           name: '',
           image: '',

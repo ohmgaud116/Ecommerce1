@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import "./CSS/LoginSignup.css";
 
+// ✅ Backend URL here
+const BASE_URL = "https://ecommerce1-8j8k.onrender.com";
+
 const LoginSignup = () => {
   const [state, setState] = useState("Login"); // "Login" or "Sign Up"
   const [formData, setFormData] = useState({
@@ -19,7 +22,7 @@ const LoginSignup = () => {
     console.log("Login function executed", formData);
 
     try {
-      const response = await fetch("http://localhost:4001/login", {
+      const response = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -48,7 +51,7 @@ const LoginSignup = () => {
     console.log("Signup function executed", formData);
 
     try {
-      const response = await fetch("http://localhost:4001/signup", {
+      const response = await fetch(`${BASE_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

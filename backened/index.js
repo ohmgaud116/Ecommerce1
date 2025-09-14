@@ -52,16 +52,21 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Upload image route
+
 app.post('/upload', upload.single('product'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'File not received' });
   }
 
+  // ✅ Use your Render backend URL instead of localhost
+  const imageUrl = `https://ecommerce1-8j8k.onrender.com/images/${req.file.filename}`;
+
   res.json({
     success: true,
-    image_url: `http://localhost:${port}/images/${req.file.filename}`
+    image_url: imageUrl
   });
 });
+
 
 // Add product route
 app.post('/addproduct', async (req, res) => {
